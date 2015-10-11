@@ -9,10 +9,7 @@ import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
 import org.biojava.nbio.core.sequence.io.*;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Hello world!
@@ -24,9 +21,9 @@ public class App
     private static int SIZE = 1500;
     private static int CHROMOSOME = 5;
     public static void main( String[] args ) throws IOException, CompoundNotFoundException, InterruptedException {
-        is = App.class.getResourceAsStream("NC_003076.gbk");
+//        is = App.class.getResourceAsStream("NC_003070.gbk");
         if (args.length < 1) throw new IllegalArgumentException();
-        //is = new FileInputStream(args[0]);
+        is = new FileInputStream(args[0]);
         if (is == null){
             System.out.println("WTF");
             return;
@@ -132,10 +129,10 @@ public class App
                     ? 0
                     : p.getBegin() - SIZE  - 1,
                     p.getBegin() - 1));
-            else p.setRegion(builder.substring(p.getEnd() + 1,
-                    p.getEnd() + SIZE + 1> builder.length()
+            else p.setRegion(builder.substring(p.getEnd(),
+                    p.getEnd() + SIZE > builder.length()
                     ? builder.length()
-                    : p.getEnd() + SIZE + 1 ));
+                    : p.getEnd() + SIZE));
         }
         for (int i = 0; i < list.size(); i++){
             DNASequence dnaSequence = new DNASequence(list.get(i).getSequence().getSequenceAsString(), AmbiguityDNACompoundSet.getDNACompoundSet());
@@ -155,6 +152,7 @@ public class App
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
         }
 
 
