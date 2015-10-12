@@ -1,5 +1,6 @@
 package ru.nsu.kib.mukhin;
 
+import com.sun.deploy.util.StringUtils;
 import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
 import org.biojava.nbio.core.sequence.AccessionID;
 import org.biojava.nbio.core.sequence.DNASequence;
@@ -10,6 +11,7 @@ import org.biojava.nbio.core.sequence.io.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Hello world!
@@ -69,8 +71,8 @@ public class App
             if (scanningGeneAnnotation && l.contains("ORIGIN      ")){//МЫ ДОШЛИ ДО ИСХОДНИОВ ХРОМОСОМЫ
                 System.out.printf("Scanning annotations have done, size of list=%d\n", list.size());
                 scanningGeneAnnotation = false;
-//                System.out.println(l);
                 continue;
+
             }
 
             if (scanningGeneAnnotation){
@@ -78,18 +80,59 @@ public class App
                     //System.out.println(l);
                     boolean b = l.contains("complement");
                     String[] q = l.split("(\\.\\.)|(\\s+complement\\()|(\\))|(\\s+<)|(\\s+)");
-                    //System.out.println(q.length);
-//                    for (String str : q){
-//                        System.out.printf("|%s| ", str);
-//                    }
                     l = scanner.nextLine();
                     String name = null;
+                    String locus = null;
+                    ArrayList<String> gene_synonym = new ArrayList<>();
                     if (l.contains("/gene=")){
                         String[] qq = l.split("(\\s+/gene=\")|\"");
-//                    for (String str: qq){
-//                        System.out.printf("{%s} ", str);
-//                    }
                         if (qq.length == 2) name = qq[1];
+                        l = scanner.nextLine();
+                    } if (l.contains("/locus_tag=")){
+                        String[] qq = l.split("(\\s+/locus_tag=\")|\"");
+                        locus = qq[1];
+                        l = scanner.nextLine();
+                    } if (l.contains("/gene_synonym=")){
+                        /**
+                        Здесь мы попытались получить всю запись о gene_synonym то есть сама строка и все то, что находится в кавычках
+                         Они могут располагаться на нескольких строчках
+                         */
+                        StringBuilder bigString = new StringBuilder();
+                        int count = 0;
+                        while (count != 2){
+                            int lastIndex = 0;
+                            while (lastIndex != -1){
+                                lastIndex = l.indexOf('\"', lastIndex);
+                                if (lastIndex != -1){
+                                    count++;
+                                    lastIndex += 1;
+                                }
+                            }
+                            bigString.append(l);
+                            if (count != 2) l = scanner.nextLine();
+                        }
+                        /**
+                         * Делим теперь сами синонимы(вводим новые "точки терминирования" на строке gene_synonym, кавычке и ; с пробелами
+                         * Не забываем
+                         */
+                        Scanner s = new Scanner(bigString.toString()).useDelimiter(Pattern.compile("(\\s+/gene_synonym=\")|\"|(;\\s+)"));
+//                        System.out.println(bigString.toString());
+                        //s.next(Pattern.compile("(\\s+/gene_synonym=\")"));
+                        while (s.hasNext()){
+                            /**
+                             * Хочу получить название синонима в нормальном виде, чтобы пробелов не было в начале и чтобы только один пробел был между словами
+                             */
+                            Scanner s1 = new Scanner(s.next());
+                            StringBuilder b2 = new StringBuilder();
+                            while (s1.hasNext()){
+                                if (b2.length() != 0) b2.append(' ' + s1.next());
+                                else b2.append(s1.next());
+                            }
+//                            System.out.println(b2.toString());
+                            gene_synonym.add(b2.toString());
+                        }
+
+
                     }
                     //System.out.println(b);
                 /*
@@ -100,7 +143,7 @@ public class App
                 b -- isComplement
                 qq[1] --имя гена, если есть!
                  */
-                    list.add(new Promotor(Integer.parseInt(q[2]), Integer.parseInt(q[3]), b, name));
+                    list.add(new Promotor(Integer.parseInt(q[2]), Integer.parseInt(q[3]), b, name, locus, gene_synonym));
 
 
                 }
@@ -138,14 +181,17 @@ public class App
             DNASequence dnaSequence = new DNASequence(list.get(i).getSequence().getSequenceAsString(), AmbiguityDNACompoundSet.getDNACompoundSet());
             //dnaSequence.setDescription("Some gene promoter named " + list.get(0).getName());
             StringBuilder stringBuilder = new StringBuilder("gi|name:");
-            if (list.get(i).getName() == null) stringBuilder.append(" none|");
+            if (list.get(i).getName() == null) stringBuilder.append("none|");
             else stringBuilder.append(list.get(i).getName() + "|");
-            stringBuilder.append("complement:" + list.get(i).isComplement() + "|position:");
-            if (!list.get(i).isComplement()) stringBuilder.append(list.get(i).getBegin() + "|");
-            else stringBuilder.append(list.get(i).getEnd() + "|");
+            stringBuilder.append("locus:" + list.get(i).getLocus() + "|");
 
-            stringBuilder.append("size:" + App.SIZE);
+            stringBuilder.append("complement:" + list.get(i).isComplement() + "|begin:");
+            if (!list.get(i).isComplement()) stringBuilder.append(list.get(i).getBegin() + "|end:" + list.get(i).getEnd());
+            else stringBuilder.append(list.get(i).getEnd() + "|end:" + list.get(i).getBegin());
+
+//            stringBuilder.append("size:" + App.SIZE);
             stringBuilder.append("|chromosome:" + App.CHROMOSOME);
+            stringBuilder.append("|gene_synonym:" + list.get(i).getGene_synonym());
             dnaSequence.setAccession(new AccessionID(stringBuilder.toString()));
             try {
                 FastaWriterHelper.writeSequence(new File("PROMOTOR_" + App.CHROMOSOME + "_" + i + ".fna"), dnaSequence);

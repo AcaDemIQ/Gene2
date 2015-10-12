@@ -7,6 +7,8 @@ import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
 import org.biojava.nbio.core.sequence.template.Sequence;
 
 import javax.swing.text.View;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by mukhin on 05.10.15.
@@ -17,13 +19,17 @@ public class Promotor {
     private boolean complement;
     private String name;
     private String region;
+    private List<String> gene_synonym;
+    private String locus;
 
     private Sequence<NucleotideCompound> sequence;
-    public Promotor(int _begin, int _end, boolean _b, String _str){
+    public Promotor(int _begin, int _end, boolean _b, String _str, String _locus, List<String> _gene_synonym){
         begin = _begin;
         end = _end;
         complement = _b;
         name = _str;
+        locus = _locus;
+        gene_synonym = _gene_synonym;
     }
 
     public int getBegin() {
@@ -84,5 +90,13 @@ public class Promotor {
 
     public Sequence<NucleotideCompound> getSequence() {
         return sequence;
+    }
+
+    public String getLocus() {
+        return locus;
+    }
+
+    public List<String> getGene_synonym() {
+        return gene_synonym;
     }
 }
