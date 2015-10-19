@@ -1,6 +1,6 @@
 package ru.nsu.kib.mukhin;
 
-import com.sun.deploy.util.StringUtils;
+
 import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
 import org.biojava.nbio.core.sequence.AccessionID;
 import org.biojava.nbio.core.sequence.DNASequence;
@@ -21,7 +21,7 @@ public class App
 {
     private static InputStream is;
     private static int SIZE = 1500;
-    private static int CHROMOSOME = 5;
+    private static int CHROMOSOME = 1;
     public static void main( String[] args ) throws IOException, CompoundNotFoundException, InterruptedException {
 //        is = App.class.getResourceAsStream("NC_003070.gbk");
         if (args.length < 1) throw new IllegalArgumentException();

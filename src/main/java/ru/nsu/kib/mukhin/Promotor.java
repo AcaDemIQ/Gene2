@@ -56,7 +56,9 @@ public class Promotor {
         AmbiguityDNACompoundSet ambiguityDNACompoundSet = AmbiguityDNACompoundSet.getDNACompoundSet();
         try {
             DNASequence s  = new DNASequence(region ,ambiguityDNACompoundSet);
-            if (isComplement()) sequence = s.getComplement().getViewedSequence();//Просто комплиментарная
+            if (isComplement()) {
+                sequence = s.getReverseComplement();//Просто комплиментарная
+            }
             else sequence = s;
             System.out.println("OK");
         } catch (CompoundNotFoundException e) {
